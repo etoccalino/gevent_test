@@ -27,34 +27,50 @@ import gevent
 import unittest
 
 
-class SyncTestCase (unittest.TestCase):
+def _when(self, condition, *args, **kwargs):
+    """Wait until the condition is met before proceeding.
 
-    def when(self, condition, *args, **kwargs):
-        """Wait until the condition is met before proceeding.
+    Returns the test instance, to allow chaining an assert method.
 
-        Returns the test instance, to allow chaining an assert method.
+    The `condition` must be a callable, returning truthy-falsy.
+    """
+    if not callable(condition):
+        raise ValueError('first argmument must be a callable proposition')
 
-        The `condition` must be a callable, returning truthy-falsy.
-        """
-        if not callable(condition):
-            raise ValueError('first argmument must be a callable proposition')
-
+    gevent.sleep()
+    while not condition(*args, **kwargs):
         gevent.sleep()
-        while not condition(*args, **kwargs):
-            gevent.sleep()
 
-        return self
+    return self
 
-    def after(self, action, *args, **kwargs):
-        """Wait until the action finishes before proceeding.
 
-        Returns the test instance, to allow chaining an assert method.
+def _after(self, action, *args, **kwargs):
+    """Wait until the action finishes before proceeding.
 
-        The `condition` must be a callable, returning truthy-falsy.
-        """
-        if not callable(action):
-            raise ValueError('first argmument must be a callable')
+    Returns the test instance, to allow chaining an assert method.
 
-        gevent.spawn(action, *args, **kwargs).join()
+    The `condition` must be a callable, returning truthy-falsy.
+    """
+    if not callable(action):
+        raise ValueError('first argmument must be a callable')
 
-        return self
+    gevent.spawn(action, *args, **kwargs).join()
+
+    return self
+
+
+class SyncMixin (object):
+
+    when = _when
+
+    after = _after
+
+
+class SyncTestCase (unittest.TestCase, SyncMixin):
+    pass
+
+
+def patch(cls):
+    cls.when = _when
+    cls.after = _after
+    return cls
