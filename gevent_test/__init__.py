@@ -39,6 +39,7 @@ class SyncTestCase (unittest.TestCase):
         if not callable(condition):
             raise ValueError('first argmument must be a callable proposition')
 
+        gevent.sleep()
         while not condition(*args, **kwargs):
             gevent.sleep()
 
