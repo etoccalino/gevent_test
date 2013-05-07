@@ -59,11 +59,17 @@ def _after(self, action, *args, **kwargs):
     return self
 
 
+def _yield(self):
+    gevent.sleep()
+
+
 class SyncMixin (object):
 
     when = _when
 
     after = _after
+
+    yield_control = _yield
 
 
 class SyncTestCase (unittest.TestCase, SyncMixin):
@@ -73,4 +79,5 @@ class SyncTestCase (unittest.TestCase, SyncMixin):
 def patch(cls):
     cls.when = _when
     cls.after = _after
+    cls.yield_control = _yield
     return cls
